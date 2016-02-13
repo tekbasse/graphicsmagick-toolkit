@@ -21,7 +21,9 @@
         <callbacks>
         </callbacks>
         <parameters>
-        <!-- No version parameters -->
+            <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="ClearTmpDirOnStartupP"  default="0" description="If set, the temporary directory is cleared on startup"/>
+            <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="TmpDir"  default="/tmp/nsd/image-magick" description="Temporary directory for working files"/>
+            <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="bin_path"  default="/usr/bin" description="Path to the Image Magick binaries"/>
         </parameters>
 
     </version>
