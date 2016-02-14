@@ -10,20 +10,19 @@
     <inherit-templates-p>f</inherit-templates-p>
     <auto-mount>graphicsmagick-toolkit</auto-mount>
 
-    <version name="0.1d" url="http://openacs.org/repository/download/apm/graphicsmagick-toolkit-1.apm">
+    <version name="0.001" url="http://openacs.org/repository/download/apm/graphicsmagick-toolkit-1.apm">
         <owner url="mailto:tekbasse@yahoo.com">Benjamin Brink</owner>
         <summary>Provides a library of procedures that read, change and create graphics files.</summary>
         <description format="text/plain">Provides a library of procedures that read, change and create graphics files using TclMagick. Requires GraphicsMagic's TclMagick extension.</description>
         <maturity>0</maturity>
 
-        <provides url="graphicsmagick-toolkit" version="0.1d"/>
+        <provides url="graphicsmagick-toolkit" version="0.001"/>
 
         <callbacks>
         </callbacks>
         <parameters>
-            <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="ClearTmpDirOnStartupP"  default="0" description="If set, the temporary directory is cleared on startup"/>
-            <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="TmpDir"  default="/tmp/nsd/image-magick" description="Temporary directory for working files"/>
-            <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="bin_path"  default="/usr/bin" description="Path to the Image Magick binaries"/>
+<!-- none at this time -->
+
         </parameters>
 
     </version>

@@ -15,34 +15,86 @@ ad_library {
 
 namespace eval gmtk {}
 
-# first cases ported from mad-lab-lib https://github.com/tekbasse/mad-lab-lib.git
+# first cases are ported from mad-lab-lib https://github.com/tekbasse/mad-lab-lib.git
 
-ad_proc -public gmtk::draw_path_builder { 
-    list_of_points 
+ad_proc -public gmtk::draw_path {
+    drawName
+    x_y_lists 
 } {
-    Convert a list of x_y coordinates to gm -draw path's paramter format.
+    Draw a path of line segments. Renders list of x_y coordinates as a sequence of connected points.
+    List of points may be a simple sequence list x1 y1 x2 y2 x3 y3... or can be a list of lists: list list x1 y1 list x2 y2 list x3 y3..
+    If a list of lists, the first list can be a label with 'x' or 'y' to indicate which index is x and y.
+    If no labels, x is assumed index 0, y is assumed index 1. Returns 0 if there are no points drawn.
 } {
-    set point_count [expr { [llength $list_of_points] / 2 } ]
-    set x [lindex $list_of_points 0]
-    set y [lindex $list_of_points 1]
-    if { $point_count > 1 } {
-        # Move to first point, then draw to each that follows.
-        # This code errors when single quotes wrap path_specification
-        # and infrequently when there isn't any. :-/
-        # Apparently, assigning colors to new variables causes problems if the # is not quoted like \#
-        set path_specification "path '"
-        set movement_type "M"
-        append path_specification "${movement_type} $x $y"
-        set movement_type " L"
-        foreach {x y} $list_of_points {
-            append path_specification "${movement_type} $x $y"
-        }
-        append path_specification "'"
+    upvar 1 $drawName drawName
+    set x_y_l_len [llength $x_y_lists]
+    set point_count $x_y_l_len
+    set row0_list [lindex $x_y_lists 0]
+    set lol_p 0
+    set success_p 1
+    if { [llength $row0_list] > 1 } {
+	# x_y_lists is a list of lists
+	set lol_p 1
+	# defaults
+	set x_idx 0
+	set y_idx 1
+	set sx_idx [lsearch -exact $row0_list "x"]
+	if { $sx_idx > -1 } {
+	    # first row contains labels
+	    incr point_count -1
+	    set x_y_lists [lrange $x_y_lists 1 end]
+	    set sy_idx [lsearch -exact $row0_list "y"]
+	    if { $sy_idx > -1 } {
+		# first row has qualifying labels
+		set x_idx $sx_idx
+		set y_idx $sy_idx
+	    }
+	}
+	set x0y0_list [lindex $x_y_lists 0]
+	set x [lindex $x0y0_list $x_idx]
+	set y [lindex $x0y0_list $y_idx]
+	if { $point_count > 0 } {
+	    if { $point_count > 1 } {
+		set x_prev $x 
+		set y_prev $y
+		foreach xy_list $x_y_lists {
+		    set x [lindex $xy_list $x_idx]
+		    set y [lindex $xy_list $y_idx]
+		    $drawName line $x $y
+		    set x_prev $x 
+		    set y_prev $y
+		}
+	    } else {
+		# path is a point
+		$drawName line $x $y $x $y
+	    }
+	} else {
+	    set success_p 0
+	}
+
     } else {
-        # path is a point
-        set path_specification "point $x,$y"
+	# xy_lists is a one sequence of x and y's
+	set point_count [expr { $point_count / 2 } ]
+	set x [lindex $x_y_lists 0]
+	set y [lindex $x_y_lists 1]
+	if { $point_count > 0 } {
+	    if { $point_count > 1 } {
+		set x_prev $x 
+		set y_prev $y
+		foreach {x y} $x_y_lists {
+		    $drawName line $x $y
+		    set x_prev $x 
+		    set y_prev $y
+		}
+	    } else {
+		# path is a point
+		$drawName line $x $y $x $y
+	    }
+	} else {
+	    set success_p 0
+	}
     }
-    return $path_specification
+    return $success_p
 }
 
 ad_proc gmtk::image_width_height { 
@@ -57,91 +109,6 @@ ad_proc gmtk::image_width_height {
 }
 
 
-ad_proc gmtk::draw_image_path_color { 
-    imagename x_y_coordinates_list color {opacity 1} 
-} {
-    Draw a path of line segments.
-} {
-    # Move to first x_y_coordinate in path represented as a list
-    # then draw to each coordinate thereafter.
-    # gm usage ref: graphicsmagick.org/wand/drawing_wand.html#drawsetstrokeopacity
-    #          and: graphicsmagick.org/1.2/www/GraphicsMagick.html
-    # gm comvert infile -operator opacity xor "100%" outfile
-    # gm convert infile -operator opacity xor|add|and|or|subtract "60%" outfile
-    set fillcolor "none"
-    while { [llength $x_y_coordinates_list] > 100 } {
-        set path_segment [lrange $x_y_coordinates_list 0 99]
-        set x_y_coordinates_list [lrange $x_y_coordinates_list 98 end]
-        #ns_log Notice  "exec gm convert -fill none -stroke $color -draw [gm_path_builder $path_segment ] $imagename $imagename"
-        exec gm convert -fill $fillcolor -stroke $color -draw [gmtk::gm_path_builder $path_segment ] $imagename $imagename
-    }
-    # This works in bash shell:
-    # gm convert gt-eq-plot-0-0.png -fill "#0000ff" -stroke "#0000ff" -draw 'path "M 50 55 L 60 65 L 70 75" circle 80,85 90,95 point 100,105' gt-eq-plot-0-0.png
-
-
-    #ns_log Notice  "exec gm convert -fill none -stroke $color -draw [gmtk::gm_path_builder $x_y_coordinates_list ] $imagename $imagename"
-    set path [gmtk::gm_path_builder $x_y_coordinates_list ]
-    if { [string match "*point*" $path] } {
-        #set fillcolor $color
-        #ns_log Notice  "exec gm convert $imagename -fill $color -draw $path $imagename"
-        exec gm convert $imagename -fill $color -draw $path $imagename
-    } else {
-        exec gm convert $imagename -fill $fillcolor -stroke $color -draw $path $imagename
-    }
-    return 1
-}
-
-ad_proc gmtk::draw_image_rect_color { 
-    imagename 
-    x0 
-    y0 
-    x1 
-    y1 
-    fillcolor 
-    {bordercolor ""} 
-    {opacity 1} 
-} {
-    Draw a rectangle
-} {
-    if { $bordercolor eq ""} {
-        set bordercolor $fillcolor
-        set strokewidth 0
-    } else {
-        set strokewidth 1
-    }
-    if { $x0 == $x1 && $y0 == $y1 } {
-        # make this point larger.. so we can see it.
-        if { $x0 < $x1 } {
-            incr x0 -1
-            incr y0 -1
-            incr x1 1
-            incr y1 1
-        } else {
-            incr x0 1
-            incr y0 1
-            incr x1 -1
-            incr y1 -1
-        }            
-    }
-    exec gm convert -fill $fillcolor -stroke $bordercolor -draw "rectangle $x0,$y0 $x1,$y1" $imagename $imagename
-}
-
-ad_proc gmtk::annotate_image_pos_color { 
-    imagename 
-    x 
-    y 
-    color 
-    text 
-} {
-    Annotate an image
-} {
-    # To annotate with blue text using font 12x24 at position (100,100), use:
-    #    gm convert -font helvetica -fill blue -draw "text 100,100 Cockatoo" bird.jpg bird.miff
-    # from: http://www.graphicsmagick.org/convert.html
-    # Do not specify font for now. For compatibility between systems, assume there is a gm default.
-    # exec gm convert -font "courier new" -fill $color -draw "text $x,$y $text" $imagename $imagename
-    exec gm convert -fill $color -draw "text $x,$y '$text'" $imagename $imagename
-}
 
 
 ad_proc gmtk::graph_lol { 
@@ -158,6 +125,8 @@ ad_proc gmtk::graph_lol {
     y_title
     {type "lin-lin"} 
 } {
+    # this proc is from mad-lab-lib. It is unported. It will get ported when a simple graph is needed.
+
     # if x_index or y_index is a list: 
     # 1 element in list: index
     # 2 elements in list: index, error (index value +/- this value)
