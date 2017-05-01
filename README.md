@@ -16,7 +16,7 @@ TclMagick with OpenACS system.
 license
 -------
 Copyright (c) 2014 Benjamin Brink
-po box 20, Marylhurst, OR 97036-0020 usa
+po box 193, Marylhurst, OR 97036-0193 usa
 email: tekbasse@yahoo.com
 
 GraphicsMagick Package is open source and published under the GNU General Public License, 

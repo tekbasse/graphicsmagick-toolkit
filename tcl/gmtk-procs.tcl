@@ -7,7 +7,7 @@ ad_library {
     @Copyright (c) 2016 Benjamin Brink
     @license GNU General Public License 3, see project home or http://www.gnu.org/licenses/gpl-3.0.en.html
     @project home: http://github.com/tekbasse/graphicsmagick-toolkit
-    @address: po box 20, Marylhurst, OR 97036-0020 usa
+    @address: po box 193, Marylhurst, OR 97036-0193 usa
     @email: tekbasse@yahoo.com
 
     Temporary comment about git commit comments: http://xkcd.com/1296/
